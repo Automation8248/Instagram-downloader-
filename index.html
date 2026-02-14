@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insta-Downloader</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fafafa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
+        input { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #dbdbdb; border-radius: 5px; box-sizing: border-box; }
+        button { background: #0095f6; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:disabled { background: #b2dffc; }
+        #status { margin-top: 15px; font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Video Downloader</h2>
+        <input type="text" id="url" placeholder="Paste link here...">
+        <button id="btn" onclick="startDownload()">Download</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        async function startDownload() {
+            const urlInput = document.getElementById('url').value;
+            const btn = document.getElementById('btn');
+            const status = document.getElementById('status');
+
+            if(!urlInput) return alert("Link toh dalo!");
+
+            btn.disabled = true;
+            status.innerText = "Searching for video... (This may take a minute)";
+
+            try {
+                // Yahan apna Render ka URL dalein (e.g., https://my-downloader.onrender.com/download)
+                const backendUrl = 'https://YOUR_BACKEND_URL_HERE.com/download'; 
+                
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlInput })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const dlUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = dlUrl;
+                    a.download = "video.mp4";
+                    a.click();
+                    status.innerText = "Success! Downloading started.";
+                } else {
+                    status.innerText = "Error: Video not found or link private.";
+                }
+            } catch (e) {
+                status.innerText = "Backend server offline or connection error.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
