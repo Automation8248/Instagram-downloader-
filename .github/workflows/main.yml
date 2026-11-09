@@ -1,41 +1,41 @@
-name: Bulk Profile Video Downloader
+name: Instagram Video Downloader
 
+# Yeh trigger aapko GitHub par ek "Run workflow" button dega
 on:
   workflow_dispatch:
     inputs:
-      profile_url:
-        description: 'Target Social Media Profile URL'
+      ig_url:
+        description: 'Instagram Reel/Post URL paste karein'
         required: true
-        type: string
+        # Default value aapka diya hua link set kiya hai
+        default: 'https://www.instagram.com/p/DehahPxS57W/?dlrf=M2ZnZ2xreDZjNzFu'
 
 jobs:
-  download-and-upload:
+  download-video:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout Repository Code
-      uses: actions/checkout@v4
-
-    - name: Set Up Python Environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-        cache: 'pip'
-
-    - name: Install System Dependencies (ffmpeg)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
-
-    - name: Install Python Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install yt-dlp cloudinary
-
-    - name: Execute Extraction and Delivery Run
-      env:
-        CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-        CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-        CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-      run: |
-        python downloader.py --url "${{ github.event.inputs.profile_url }}"
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: 📦 Install Requirements
+        run: pip install requests
+          
+      - name: 🚀 Run Python Downloader Script
+        env:
+          # Workflow input ko Python script tak bhej raha hai
+          IG_URL: ${{ github.event.inputs.ig_url }}
+        run: python downloader.py
+        
+      - name: 💾 Upload Video Artifact (For Download)
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-video-${{ github.run_id }}
+          # Python script jo naam GITHUB_ENV me set karegi, ye step wahi file uthayega
+          path: ${{ env.VIDEO_FILENAME }}
+          retention-days: 1
