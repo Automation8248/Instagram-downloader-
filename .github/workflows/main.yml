@@ -1,41 +1,47 @@
-name: Instagram Video Downloader
+name: Instagram Downloader & Processor
 
-# Yeh trigger aapko GitHub par ek "Run workflow" button dega
 on:
   workflow_dispatch:
     inputs:
-      ig_url:
-        description: 'Instagram Reel/Post URL paste karein'
+      insta_url:
+        description: 'Instagram Reel/Video URL paste karein'
         required: true
-        # Default value aapka diya hua link set kiya hai
-        default: 'https://www.instagram.com/p/DehahPxS57W/?dlrf=M2ZnZ2xreDZjNzFu'
+        type: string
 
 jobs:
-  download-video:
+  scrape-and-download:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
-        
-      - name: 🐍 Setup Python
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          
-      - name: 📦 Install Requirements
-        run: pip install requests
-          
-      - name: 🚀 Run Python Downloader Script
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright requests
+          playwright install chromium
+
+      - name: Run Smart Auto-Fallback Scraper
         env:
-          # Workflow input ko Python script tak bhej raha hai
-          IG_URL: ${{ github.event.inputs.ig_url }}
-        run: python downloader.py
-        
-      - name: 💾 Upload Video Artifact (For Download)
+          # GitHub action ka input python script me bhej rahe hain
+          INSTAGRAM_URL: ${{ github.event.inputs.insta_url }} 
+        run: python scraper.py
+
+      # (Optional) Video ko GitHub Actions me save karne ke liye taaki aap use dekh sakein
+      - name: Upload Downloaded Video as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: instagram-video-${{ github.run_id }}
-          # Python script jo naam GITHUB_ENV me set karegi, ye step wahi file uthayega
-          path: ${{ env.VIDEO_FILENAME }}
-          retention-days: 1
+          name: Facebook-Ready-Video
+          path: facebook_ready.mp4
+          retention-days: 1 # 1 din baad auto-delete ho jayega taaki storage full na ho
+
+      # (Optional) Webhook Trigger (Agar aap Make.com ya n8n use kar rahe hain)
+      # - name: Send to Webhook
+      #   run: |
+      #     curl -X POST "YOUR_MAKE_COM_WEBHOOK_URL" -F "video=@facebook_ready.mp4"
